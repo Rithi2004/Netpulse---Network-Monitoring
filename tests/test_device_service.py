@@ -1,6 +1,8 @@
 import pytest
+import asyncio
 
 from app.repositories.device_repository import InMemoryDeviceRepository
+from app.services.probe import simulate_device_probe
 from app.services.device_service import (
     DeviceAlreadyExistsError,
     DeviceNotFoundError,
@@ -77,3 +79,42 @@ def test_repeated_offline_still_creates_one_alert(
     service.update_status("RTR-101", "offline")
 
     assert len(service.repository.list_alerts()) == 1
+
+
+def test_empty_device_summary(service: DeviceService) -> None:
+    assert service.get_device_summary() == {
+        "total_devices": 0,
+        "online_count": 0,
+        "offline_count": 0,
+        "device_types": [],
+    }
+
+
+def test_populated_summary_uses_unique_sorted_device_types(
+    service: DeviceService,
+) -> None:
+    service.register(online_device())
+    switch = {
+        "device_id": "SW-102",
+        "name": "Floor Switch",
+        "device_type": "switch",
+        "ip_address": "192.168.10.2",
+        "status": "online",
+    }
+    service.register(switch)
+    service.update_status("RTR-101", "offline")
+
+    assert service.get_device_summary() == {
+        "total_devices": 2,
+        "online_count": 1,
+        "offline_count": 1,
+        "device_types": ["router", "switch"],
+    }
+
+
+def test_simulated_probe() -> None:
+    result = asyncio.run(simulate_device_probe("RTR-101"))
+
+    assert result["device_id"] == "RTR-101"
+    assert result["reachable"] is True
+    assert result["simulated"] is True

@@ -62,3 +62,16 @@ class AlertResponse(ValidatedModel):
     device_id: str
     message: str
     timestamp: datetime
+
+
+class DeviceSummaryResponse(ValidatedModel):
+    total_devices: int
+    online_count: int
+    offline_count: int
+    device_types: list[str]
+
+
+class DeviceProbeResponse(ValidatedModel):
+    device_id: str
+    reachable: bool
+    simulated: bool
