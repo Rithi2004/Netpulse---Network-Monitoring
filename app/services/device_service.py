@@ -23,6 +23,9 @@ class DeviceService:
             )
         return self.repository.add_device(device)
 
+    def list_alerts(self) -> list[dict[str, Any]]:
+        return self.repository.list_alerts()
+
     def list(self) -> list[dict[str, Any]]:
         return self.repository.list_devices()
 

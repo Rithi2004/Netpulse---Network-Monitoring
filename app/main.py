@@ -1,15 +1,27 @@
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
 
+from app.db import models
+from app.db.database import engine
 from app.routes.devices import router
 from app.services.device_service import (
     DeviceAlreadyExistsError,
     DeviceNotFoundError,
 )
 
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    models.Base.metadata.create_all(bind=engine)
+    yield
+
+
 app = FastAPI(
     title="NetPulse Network Monitoring API",
-    description="In-memory network device monitoring",
+    description="SQLite-backed network device monitoring",
+    lifespan=lifespan,
 )
 app.include_router(router)
 
